@@ -1,0 +1,45 @@
+import sqlite3
+
+conn = sqlite3.connect("company.db")
+cursor = conn.cursor()
+
+cursor.execute("DROP TABLE IF EXISTS Employees;")
+
+cursor.execute("""
+CREATE TABLE Employees (
+    EmployeeID INTEGER PRIMARY KEY,
+    Name TEXT,
+    Salary INTEGER
+);
+""")
+
+employees = [
+    (1, 'Alice', 120000),
+    (2, 'Bob', 90000),
+    (3, 'Charlie', 150000),
+    (4, 'David', 110000),
+    (5, 'Eve', 150000),
+    (6, 'Frank', 95000)
+]
+cursor.executemany("INSERT INTO Employees VALUES (?, ?, ?)", employees)
+conn.commit()
+
+query = """
+SELECT Name, Salary
+FROM Employees
+WHERE Salary = (
+    SELECT DISTINCT Salary
+    FROM Employees
+    ORDER BY Salary DESC
+    LIMIT 1 OFFSET 2
+);
+"""
+
+cursor.execute(query)
+rows = cursor.fetchall()
+
+print("Employees with 3rd highest salary:")
+for row in rows:
+    print(f"{row[0]} | {row[1]}")
+
+conn.close()
